@@ -11,7 +11,7 @@ function Projects(props) {
     document.title = "Projects";
     //const { user: authUser } = useSelector(x => x.auth);
     const [show, setShow] = useState(false);
-    const [reloadChild, setReloadChild] = useState();
+    const [reloadChild, setReloadChild] = useState(props.isArchived);
     useEffect(() => {
         // This code will run whenever props.isArchived changes
         setReloadChild(props.isArchived);
