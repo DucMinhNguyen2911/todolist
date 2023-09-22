@@ -3,14 +3,15 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import { useEffect, useState } from "react";
 import { fetchWrapper } from "_helpers";
-//import { useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useParams } from 'react-router-dom';
 import { history } from '_helpers';
+import axios from 'axios';
 
 export { Project };
 function Project() {
     const { projectName, projectId } = useParams();
-    //const { user: authUser } = useSelector(x => x.auth);
+    const { user: authUser } = useSelector(x => x.auth);
     const [incompleteTasksData, setIncompleteTasksData] = useState([]);
     const [completeTasksData, setCompleteTasksData] = useState([]);
     const baseProjectUrl = `${process.env.REACT_APP_API_URL}/projects`;
@@ -20,10 +21,21 @@ function Project() {
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
     const day = String(currentDate.getDate()).padStart(2, '0');
     const currentDateStr = `${year}-${month}-${day}`;
-    currentDate.setHours(0,0,0,0)
+    currentDate.setHours(0, 0, 0, 0)
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
+
+    const [show1, setShow1] = useState(false);
+    const handleClose1 = () => setShow1(false);
+    const handleShow1 = () => setShow1(true);
+
+    const [file, setFile] = useState(null);
+
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);
+    };
+
     const [inputName, setInputName] = useState('');
 
     const handleInputNameChange = (event) => {
@@ -47,8 +59,7 @@ function Project() {
     const handleInputDateChange = (event) => {
         setInputDate(event.target.value);
     };
-    function onGet()
-    {
+    function onGet() {
         fetchWrapper.get(`${baseTasksUrl}/project/${projectId}/complete-status/0`).then((response) => {
             setIncompleteTasksData((existingData) => {
                 return response;
@@ -66,6 +77,23 @@ function Project() {
             onGet();
         });
     }
+    const onUpload = async () => {
+        const formData = new FormData();
+        formData.append('file', file);
+        console.log(file);
+        setShow1(false);
+        //fetchWrapper.post(`${baseTasksUrl}/upload/project/${projectId}`, formData).then(() => {
+        //    onGet();
+        //});
+        axios.post(`${baseTasksUrl}/upload/project/${projectId}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${authUser.token}`
+            }
+        }).then(() => {
+            onGet();
+        });
+    };
     useEffect(() => {
         fetchWrapper.post(`${baseProjectUrl}/validate`, { id: projectId, name: projectName }).then((response) => {
             if (!response) {
@@ -81,12 +109,12 @@ function Project() {
     }, []);
 
     const handleComplete = (taskId) => {
-        fetchWrapper.put(`${baseTasksUrl}/complete/${taskId}`,{isCompleted:1}).then(() => {
+        fetchWrapper.put(`${baseTasksUrl}/complete/${taskId}`, { isCompleted: 1 }).then(() => {
             onGet();
         });
     };
     const handleInComplete = (taskId) => {
-        fetchWrapper.put(`${baseTasksUrl}/complete/${taskId}`,{isCompleted:0}).then(() => {
+        fetchWrapper.put(`${baseTasksUrl}/complete/${taskId}`, { isCompleted: 0 }).then(() => {
             onGet();
         });
     };
@@ -104,19 +132,19 @@ function Project() {
                 <Modal.Body>
                     <div className="input-group mb-3">
                         <span className="input-group-text">Name</span>
-                        <input type="text" className="form-control" value={inputName} onChange={handleInputNameChange}/>
+                        <input type="text" className="form-control" value={inputName} onChange={handleInputNameChange} />
                     </div>
                     <div className="input-group mb-3">
                         <span className="input-group-text">Description</span>
-                        <input type="text" className="form-control" value={inputDescription} onChange={handleInputDescriptionChange}/>
+                        <input type="text" className="form-control" value={inputDescription} onChange={handleInputDescriptionChange} />
                     </div>
                     <div className="input-group mb-3">
                         <span className="input-group-text">Priority</span>
-                        <input type="number" max="4" min="1" className="form-control" value={inputPriority} onChange={handleInputPriorityChange}/>
+                        <input type="number" max="4" min="1" className="form-control" value={inputPriority} onChange={handleInputPriorityChange} />
                     </div>
                     <div className="input-group mb-3">
                         <span className="input-group-text">Due date</span>
-                        <input type="date" min={currentDateStr} className="form-control" value={inputDate} onChange={handleInputDateChange}/>
+                        <input type="date" min={currentDateStr} className="form-control" value={inputDate} onChange={handleInputDateChange} />
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
@@ -128,10 +156,29 @@ function Project() {
                     </Button>
                 </Modal.Footer>
             </Modal>
+            <Modal show={show1} onHide={handleClose1}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Add tasks</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className="input-group mb-3">
+                        <span className="input-group-text">Excel file</span>
+                        <input type="file" accept=".xlsx, .xls" className="form-control" onChange={handleFileChange} />
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleClose1}>
+                        Close
+                    </Button>
+                    <Button variant="primary" onClick={onUpload}>
+                        Upload
+                    </Button>
+                </Modal.Footer>
+            </Modal>
             <h3 className="mb-5">{projectName}</h3>
             <h4 className="mb-3">Incompleted tasks</h4>
             <div className="table-responsive">
-                <table className="table table-hover align-middle mb-5" style={{tableLayout: "fixed"}}>
+                <table className="table table-hover align-middle mb-5" style={{ tableLayout: "fixed" }}>
                     <thead>
                         <tr>
                             <th scope="col" className="col-1">#</th>
@@ -168,14 +215,15 @@ function Project() {
                             </tr>)
                         }
                         <tr>
-                            <td colSpan="6"><div className='d-grid'><button className="btn btn-light " onClick={handleShow}><i className="fa-solid fa-plus"></i> Add</button></div></td>
+                            <td colSpan="5"><div className='d-grid'><button className="btn btn-light " onClick={handleShow}><i className="fa-solid fa-plus"></i> Add</button></div></td>
+                            <td colSpan="1"><div className='d-grid'><button className="btn btn-success " onClick={handleShow1}><i className="fa-solid fa-plus"></i> Upload file</button></div></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             <h4 className="mb-3">Completed tasks</h4>
             <div className="table-responsive">
-                <table className="table table-hover align-middle mb-5" style={{tableLayout: "fixed"}}>
+                <table className="table table-hover align-middle mb-5" style={{ tableLayout: "fixed" }}>
                     <thead>
                         <tr>
                             <th scope="col" className="col-1">#</th>
