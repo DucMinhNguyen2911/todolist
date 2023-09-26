@@ -65,6 +65,9 @@ function Project() {
     const handleInputDateChange = (event) => {
         setInputDate(event.target.value);
     };
+
+    const [processingTasks, setProcessingTasks] = useState(new Set());
+
     function onGet() {
         fetchWrapper.get(`${baseTasksUrl}/project/${projectId}/complete-status/0`).then((response) => {
             setIncompleteTasksData((existingData) => {
@@ -130,17 +133,35 @@ function Project() {
     }, []);
 
     const handleComplete = async (taskId) => {
+        setProcessingTasks(prev => new Set(prev).add(taskId));
         fetchWrapper.put(`${baseTasksUrl}/complete/${taskId}`, { isCompleted: 1 }).then(() => {
+            setProcessingTasks(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(taskId);
+                return newSet;
+            });
             onGet();
         });
     };
     const handleInComplete = async (taskId) => {
+        setProcessingTasks(prev => new Set(prev).add(taskId));
         fetchWrapper.put(`${baseTasksUrl}/complete/${taskId}`, { isCompleted: 0 }).then(() => {
+            setProcessingTasks(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(taskId);
+                return newSet;
+            });
             onGet();
         });
     };
     const handleDelete = async (taskId) => {
+        setProcessingTasks(prev => new Set(prev).add(taskId));
         fetchWrapper.delete(`${baseTasksUrl}/${taskId}`).then(() => {
+            setProcessingTasks(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(taskId);
+                return newSet;
+            });
             onGet();
         });
     };
@@ -227,8 +248,14 @@ function Project() {
                                         <td>{task.priority}</td>
                                         <td className={className}>{task.dueAt.split('T')[0]}{isOverdue && " (Overdue)"}</td>
                                         <td>
-                                            <button className="btn btn-success me-3" onClick={() => handleComplete(task.id)}>Complete</button>
-                                            <button className="btn btn-danger" onClick={() => handleDelete(task.id)}>Delete</button>
+                                            <button className="btn btn-success me-3" onClick={() => handleComplete(task.id)} disabled={processingTasks.has(task.id)}>
+                                                {processingTasks.has(task.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
+                                                Complete
+                                            </button>
+                                            <button className="btn btn-danger" onClick={() => handleDelete(task.id)} disabled={processingTasks.has(task.id)}>
+                                                {processingTasks.has(task.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
+                                                Delete
+                                            </button>
                                         </td>
                                     </tr>
                                 );
@@ -268,8 +295,14 @@ function Project() {
                                     <td>{task.priority}</td>
                                     <td>{task.dueAt.split('T')[0]}</td>
                                     <td>
-                                        <button className="btn btn-warning me-3" onClick={() => handleInComplete(task.id)}>Incomplete</button>
-                                        <button className="btn btn-danger" onClick={() => handleDelete(task.id)}>Delete</button>
+                                        <button className="btn btn-warning me-3" onClick={() => handleInComplete(task.id)} disabled={processingTasks.has(task.id)}>
+                                            {processingTasks.has(task.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
+                                            Incomplete
+                                        </button>
+                                        <button className="btn btn-danger" onClick={() => handleDelete(task.id)} disabled={processingTasks.has(task.id)}>
+                                            {processingTasks.has(task.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
+                                            Delete
+                                        </button>
                                     </td>
                                 </tr>
                             ))

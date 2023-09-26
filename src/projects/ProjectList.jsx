@@ -8,6 +8,7 @@ function ProjectList(props) {
     //const { user: authUser } = useSelector(x => x.auth);
     const [ projectsData, setProjectsData] = useState([]);
     const baseUrl = `${process.env.REACT_APP_API_URL}/projects`;
+    const [processingTasks, setProcessingTasks] = useState(new Set());
     function onGet()
     {
         fetchWrapper.get(`${baseUrl}/archive-status/${props.isArchived}`).then((response) => {
@@ -21,12 +22,24 @@ function ProjectList(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const handleArchive = (projectId) => {
+        setProcessingTasks(prev => new Set(prev).add(projectId));
         fetchWrapper.put(`${baseUrl}/archive/${projectId}`,{isArchived:1-props.isArchived}).then(() => {
+            setProcessingTasks(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(projectId);
+                return newSet;
+            });
             onGet();
         });
     };
     const handleDelete = (projectId) => {
+        setProcessingTasks(prev => new Set(prev).add(projectId));
         fetchWrapper.delete(`${baseUrl}/${projectId}`).then(() => {
+            setProcessingTasks(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(projectId);
+                return newSet;
+            });
             onGet();
         });
     };
@@ -43,12 +56,18 @@ function ProjectList(props) {
                             </div>
                             <div className="col-md-1">
                                 <div className="d-grid">
-                                    <button className="btn btn-info" onClick={() => handleArchive(project.id)}>{props.isArchived ? "Unarchive" :"Archive"}</button>
+                                    <button className="btn btn-info" onClick={() => handleArchive(project.id)} disabled={processingTasks.has(project.id)}>
+                                        {processingTasks.has(project.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
+                                        {props.isArchived ? "Unarchive" :"Archive"}
+                                    </button>
                                 </div>
                             </div>
                             <div className="col-md-1">
                                 <div className="d-grid">
-                                    <button className="btn btn-danger" onClick={() => handleDelete(project.id)}>Delete</button>
+                                    <button className="btn btn-danger" onClick={() => handleDelete(project.id)} disabled={processingTasks.has(project.id)}>
+                                        {processingTasks.has(project.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
                         </li>
