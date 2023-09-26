@@ -27,7 +27,10 @@ function Project() {
     const handleShow = () => setShow(true);
 
     const [show1, setShow1] = useState(false);
-    const handleClose1 = () => setShow1(false);
+    const handleClose1 = () => {
+        setShow1(false);
+        setFile(null);
+    }
     const handleShow1 = () => setShow1(true);
 
     const [file, setFile] = useState(null);
@@ -35,6 +38,9 @@ function Project() {
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
     };
+
+    const [uploadMessage, setUploadMessage] = useState('');
+    const [disable, setDisable] = useState(false);
 
     const [inputName, setInputName] = useState('');
 
@@ -72,27 +78,42 @@ function Project() {
         });
     }
     const onSubmit = async () => {
-        setShow(false);
-        fetchWrapper.post(`${baseTasksUrl}`, { name: inputName, description: inputDescription, priority: inputPriority, projectId: projectId, dueAt: inputDate }).then(() => {
+        setDisable(true);
+        fetchWrapper.post(`${baseTasksUrl}/project/${projectId}`, { name: inputName, description: inputDescription, priority: inputPriority, dueAt: inputDate }).then(() => {
             onGet();
+            setDisable(false);
+            setShow(false);
+            setInputName('');
+            setInputDescription('');
+            //setInputPriority(4);
+            //setInputDate(currentDateStr);
         });
     }
     const onUpload = async () => {
-        const formData = new FormData();
-        formData.append('file', file);
-        console.log(file);
-        setShow1(false);
-        //fetchWrapper.post(`${baseTasksUrl}/upload/project/${projectId}`, formData).then(() => {
-        //    onGet();
-        //});
-        axios.post(`${baseTasksUrl}/upload/project/${projectId}`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                'Authorization': `Bearer ${authUser.token}`
-            }
-        }).then(() => {
-            onGet();
-        });
+        if (file) {
+            setUploadMessage('')
+            setDisable(true);
+            const formData = new FormData();
+            formData.append('file', file);
+            console.log(file);
+            fetchWrapper.post(`${baseTasksUrl}/upload/project/${projectId}`, formData).then(() => {
+               onGet();
+               setDisable(false);
+               setShow1(false);
+               setFile(null);
+            });
+            // axios.post(`${baseTasksUrl}/upload/project/${projectId}`, formData, {
+            //     headers: {
+            //         'Content-Type': 'multipart/form-data',
+            //         'Authorization': `Bearer ${authUser.token}`
+            //     }
+            // }).then(() => {
+            //     onGet();
+            // });
+        }
+        else {
+            setUploadMessage('Please choose an Excel file!');
+        }
     };
     useEffect(() => {
         fetchWrapper.post(`${baseProjectUrl}/validate`, { id: projectId, name: projectName }).then((response) => {
@@ -108,17 +129,17 @@ function Project() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleComplete = (taskId) => {
+    const handleComplete = async (taskId) => {
         fetchWrapper.put(`${baseTasksUrl}/complete/${taskId}`, { isCompleted: 1 }).then(() => {
             onGet();
         });
     };
-    const handleInComplete = (taskId) => {
+    const handleInComplete = async (taskId) => {
         fetchWrapper.put(`${baseTasksUrl}/complete/${taskId}`, { isCompleted: 0 }).then(() => {
             onGet();
         });
     };
-    const handleDelete = (taskId) => {
+    const handleDelete = async (taskId) => {
         fetchWrapper.delete(`${baseTasksUrl}/${taskId}`).then(() => {
             onGet();
         });
@@ -151,7 +172,8 @@ function Project() {
                     <Button variant="secondary" onClick={handleClose}>
                         Close
                     </Button>
-                    <Button variant="primary" onClick={onSubmit}>
+                    <Button variant="primary" onClick={onSubmit} disabled={disable}>
+                        {disable?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
                         Add
                     </Button>
                 </Modal.Footer>
@@ -165,12 +187,14 @@ function Project() {
                         <span className="input-group-text">Excel file</span>
                         <input type="file" accept=".xlsx, .xls" className="form-control" onChange={handleFileChange} />
                     </div>
+                    <p className="text-center text-danger">{uploadMessage}</p>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleClose1}>
                         Close
                     </Button>
-                    <Button variant="primary" onClick={onUpload}>
+                    <Button variant="primary" onClick={onUpload} disabled={disable}> 
+                        {disable?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
                         Upload
                     </Button>
                 </Modal.Footer>
