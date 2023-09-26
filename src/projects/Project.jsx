@@ -230,8 +230,8 @@ function Project() {
                             <th scope="col" className="col-2">Name</th>
                             <th scope="col" className="col-4">Description</th>
                             <th scope="col" className="col-1">Priority</th>
-                            <th scope="col" className="col-2">Due date</th>
-                            <th scope="col" className="col-2">Action</th>
+                            <th scope="col" className="col-1">Due date</th>
+                            <th scope="col" className="col-3">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -248,11 +248,11 @@ function Project() {
                                         <td>{task.priority}</td>
                                         <td className={className}>{task.dueAt.split('T')[0]}{isOverdue && " (Overdue)"}</td>
                                         <td>
-                                            <button className="btn btn-success me-3" onClick={() => handleComplete(task.id)} disabled={processingTasks.has(task.id)}>
+                                            <button className="btn btn-success col-md-6" onClick={() => handleComplete(task.id)} disabled={processingTasks.has(task.id)}>
                                                 {processingTasks.has(task.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
                                                 Complete
                                             </button>
-                                            <button className="btn btn-danger" onClick={() => handleDelete(task.id)} disabled={processingTasks.has(task.id)}>
+                                            <button className="btn btn-danger col-md-5 offset-md-1" onClick={() => handleDelete(task.id)} disabled={processingTasks.has(task.id)}>
                                                 {processingTasks.has(task.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
                                                 Delete
                                             </button>
@@ -281,8 +281,8 @@ function Project() {
                             <th scope="col" className="col-2">Name</th>
                             <th scope="col" className="col-4">Description</th>
                             <th scope="col" className="col-1">Priority</th>
-                            <th scope="col" className="col-2">Due date</th>
-                            <th scope="col" className="col-2">Action</th>
+                            <th scope="col" className="col-1">Due date</th>
+                            <th scope="col" className="col-3">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -295,11 +295,11 @@ function Project() {
                                     <td>{task.priority}</td>
                                     <td>{task.dueAt.split('T')[0]}</td>
                                     <td>
-                                        <button className="btn btn-warning me-3" onClick={() => handleInComplete(task.id)} disabled={processingTasks.has(task.id)}>
+                                        <button className="btn btn-warning col-md-6" onClick={() => handleInComplete(task.id)} disabled={processingTasks.has(task.id)}>
                                             {processingTasks.has(task.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
                                             Incomplete
                                         </button>
-                                        <button className="btn btn-danger" onClick={() => handleDelete(task.id)} disabled={processingTasks.has(task.id)}>
+                                        <button className="btn btn-danger col-md-5 offset-md-1" onClick={() => handleDelete(task.id)} disabled={processingTasks.has(task.id)}>
                                             {processingTasks.has(task.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
                                             Delete
                                         </button>

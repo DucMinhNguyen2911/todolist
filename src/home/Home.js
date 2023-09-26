@@ -28,13 +28,27 @@ function Home() {
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
     const day = String(currentDate.getDate()).padStart(2, '0');
     const currentDateStr = `${year}-${month}-${day}`;
+    const [processingTasks, setProcessingTasks] = useState(new Set());
+
     const handleComplete = (taskId) => {
+        setProcessingTasks(prev => new Set(prev).add(taskId));
         fetchWrapper.put(`${baseTasksUrl}/complete/${taskId}`,{isCompleted:1}).then(() => {
+            setProcessingTasks(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(taskId);
+                return newSet;
+            });
             onGet();
         });
     };
     const handleDelete = (taskId) => {
+        setProcessingTasks(prev => new Set(prev).add(taskId));
         fetchWrapper.delete(`${baseTasksUrl}/${taskId}`).then(() => {
+            setProcessingTasks(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(taskId);
+                return newSet;
+            });
             onGet();
         });
     };
@@ -75,8 +89,8 @@ function Home() {
                             <th scope="col" className="col-2">Name</th>
                             <th scope="col" className="col-3">Description</th>
                             <th scope="col" className="col-2">Project</th>
-                            <th scope="col" className="col-2">Priority</th>
-                            <th scope="col" className="col-2">Action</th>
+                            <th scope="col" className="col-1">Priority</th>
+                            <th scope="col" className="col-3">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -90,8 +104,14 @@ function Home() {
                                         <td>{task.project.name}</td>
                                         <td>{task.priority}</td>
                                         <td>
-                                            <button className="btn btn-success me-3" onClick={() => handleComplete(task.id)}>Complete</button>
-                                            <button className="btn btn-danger" onClick={() => handleDelete(task.id)}>Delete</button>
+                                            <button className="btn btn-success col-md-6" onClick={() => handleComplete(task.id)} disabled={processingTasks.has(task.id)}>
+                                                {processingTasks.has(task.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
+                                                Complete
+                                            </button>
+                                            <button className="btn btn-danger col-md-5 offset-md-1" onClick={() => handleDelete(task.id)} disabled={processingTasks.has(task.id)}>
+                                                {processingTasks.has(task.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
+                                                Delete
+                                            </button>
                                         </td>
                                     </tr>
                                 );
@@ -113,8 +133,8 @@ function Home() {
                             <th scope="col" className="col-2">Name</th>
                             <th scope="col" className="col-3">Description</th>
                             <th scope="col" className="col-2">Project</th>
-                            <th scope="col" className="col-2">Priority</th>
-                            <th scope="col" className="col-2">Action</th>
+                            <th scope="col" className="col-1">Priority</th>
+                            <th scope="col" className="col-3">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -128,8 +148,14 @@ function Home() {
                                         <td>{task.project.name}</td>
                                         <td>{task.priority}</td>
                                         <td>
-                                            <button className="btn btn-success me-3" onClick={() => handleComplete(task.id)}>Complete</button>
-                                            <button className="btn btn-danger" onClick={() => handleDelete(task.id)}>Delete</button>
+                                            <button className="btn btn-success me-3" onClick={() => handleComplete(task.id)} disabled={processingTasks.has(task.id)}>
+                                                {processingTasks.has(task.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
+                                                Complete
+                                            </button>
+                                            <button className="btn btn-danger" onClick={() => handleDelete(task.id)} disabled={processingTasks.has(task.id)}>
+                                                {processingTasks.has(task.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
+                                                Delete
+                                            </button>
                                         </td>
                                     </tr>
                                 );

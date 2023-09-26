@@ -49,12 +49,12 @@ function ProjectList(props) {
                 <ul className="list-group px-4">
                     {projectsData.map(project =>
                         <li key={project.id} className="gy-2 row gx-2 m-0">
-                            <div className="col-md-10">
+                            <div className="col-md-8">
                                 <div className="d-grid">
                                     <Link to={`/projects/${project.name}-${project.id}`} className="btn btn-light text-start">{project.name}</Link>
                                 </div>
                             </div>
-                            <div className="col-md-1">
+                            <div className="col-md-2">
                                 <div className="d-grid">
                                     <button className="btn btn-info" onClick={() => handleArchive(project.id)} disabled={processingTasks.has(project.id)}>
                                         {processingTasks.has(project.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
@@ -62,7 +62,7 @@ function ProjectList(props) {
                                     </button>
                                 </div>
                             </div>
-                            <div className="col-md-1">
+                            <div className="col-md-2">
                                 <div className="d-grid">
                                     <button className="btn btn-danger" onClick={() => handleDelete(project.id)} disabled={processingTasks.has(project.id)}>
                                         {processingTasks.has(project.id)?<span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>:''}
